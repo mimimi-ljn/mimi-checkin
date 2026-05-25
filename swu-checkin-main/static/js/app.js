@@ -132,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 });
 
-// Announcements modal
+// Announcements modal — one-time display with forced 3s reading
 document.addEventListener("DOMContentLoaded", async function() {
   var modal = document.getElementById("announcement-modal");
   var confirmBtn = document.getElementById("confirm-modal");
@@ -140,9 +140,30 @@ document.addEventListener("DOMContentLoaded", async function() {
   var announcementContent = document.getElementById("announcement-content");
   var announcementsQueue = [];
   var currentIndex = 0;
+  var readTimer = null;
+  var hasClickedOnce = false;
+
+  var STORAGE_KEY = "mimi_dismissed_announcements";
+
+  function getDismissed() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function markDismissed(annId) {
+    var dismissed = getDismissed();
+    if (dismissed.indexOf(annId) === -1) {
+      dismissed.push(annId);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(dismissed));
+    }
+  }
 
   function closeModal() {
     if (!modal) return;
+    if (readTimer) { clearTimeout(readTimer); readTimer = null; }
     modal.style.display = "none";
     document.body.classList.remove("modal-open");
   }
@@ -156,28 +177,61 @@ document.addEventListener("DOMContentLoaded", async function() {
     }, 600);
   }
 
+  function resetButton() {
+    if (!confirmBtn) return;
+    hasClickedOnce = false;
+    confirmBtn.textContent = "关闭";
+    confirmBtn.disabled = false;
+    confirmBtn.classList.remove("btn-reading");
+  }
+
   function render() {
     var current = announcementsQueue[currentIndex];
-    if (!current || !announcementTitle || !announcementContent || !confirmBtn) {
+    if (!current || !announcementTitle || !announcementContent) {
       closeModal();
       return;
     }
+
+    // Reset button state for this announcement
+    if (readTimer) { clearTimeout(readTimer); readTimer = null; }
+    resetButton();
+
     var total = announcementsQueue.length;
     announcementTitle.textContent = total > 1
       ? "系统公告 (" + (currentIndex + 1) + "/" + total + "): " + current.title
       : current.title;
     announcementContent.textContent = current.content;
     announcementContent.style.whiteSpace = "pre-line";
-    confirmBtn.textContent = currentIndex < total - 1 ? "下一条" : "已阅";
   }
 
   if (confirmBtn) {
     confirmBtn.addEventListener("click", function() {
+      if (!hasClickedOnce) {
+        // First click: force 3s reading
+        hasClickedOnce = true;
+        confirmBtn.textContent = "球球你看一下";
+        confirmBtn.disabled = true;
+        confirmBtn.classList.add("btn-reading");
+        readTimer = setTimeout(function() {
+          confirmBtn.textContent = "关闭";
+          confirmBtn.disabled = false;
+          confirmBtn.classList.remove("btn-reading");
+        }, 3000);
+        return;
+      }
+
+      // Second click (after 3s): dismiss this announcement
+      var current = announcementsQueue[currentIndex];
+      if (current && current.id) {
+        markDismissed(current.id);
+      }
+
       if (currentIndex < announcementsQueue.length - 1) {
         currentIndex += 1;
         render();
         return;
       }
+
       closeModal();
     });
   }
@@ -187,7 +241,13 @@ document.addEventListener("DOMContentLoaded", async function() {
 
   try {
     var data = await fetchJson("/api/v1/announcements?page=" + currentPage);
-    announcementsQueue = data.filter(function(item) { return item && item.title && item.content; });
+    var dismissed = getDismissed();
+    announcementsQueue = data.filter(function(item) {
+      if (!item || !item.title || !item.content) return false;
+      // Skip already-dismissed announcements
+      if (item.id && dismissed.indexOf(item.id) !== -1) return false;
+      return true;
+    });
     currentIndex = 0;
     if (announcementsQueue.length > 0) {
       render();
