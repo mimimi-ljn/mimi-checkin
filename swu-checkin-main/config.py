@@ -8,12 +8,8 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", f"sqlite:///{os.path.join(BASE_DIR, 'app.db')}")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Email config (SMTP)
-    SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.qq.com")
-    SMTP_PORT = int(os.environ.get("SMTP_PORT", 465))
-    SMTP_USER = os.environ.get("SMTP_USER", "3922529458@qq.com")
-    SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "ftsnjdtigorhccga")
-    SMTP_FROM = os.environ.get("SMTP_FROM", "3922529458@qq.com")
+    # Resend email API key (https://resend.com)
+    RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "re_eYfVMpAr_BpNJrd6NGi42GPu2hyoWt2T3")
 
     # Auto check-in schedule (Beijing time)
     CHECKIN_HOUR = 21
