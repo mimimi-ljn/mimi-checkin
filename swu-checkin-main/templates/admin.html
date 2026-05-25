@@ -13,6 +13,7 @@
     <a href="/admin" class="admin-tab {% if page == 'overview' %}active{% endif %}">概览</a>
     <a href="/admin/settings" class="admin-tab {% if page == 'settings' %}active{% endif %}">站点设置</a>
     <a href="/admin/announcements" class="admin-tab {% if page == 'announcements' %}active{% endif %}">公告管理</a>
+    <a href="/admin/users" class="admin-tab {% if page == 'users' %}active{% endif %}">用户管理</a>
   </div>
 
   <!-- ========== OVERVIEW ========== -->
@@ -101,13 +102,19 @@
           <textarea class="input" id="ann_content" placeholder="公告内容..." style="min-height:80px;padding:12px;" required></textarea>
         </div>
         <div class="form-group">
-          <label>显示页面</label>
+          <label>显示页面（全局公告时生效）</label>
           <select class="input" id="ann_page">
             <option value="all">所有页面</option>
             <option value="home">首页</option>
             <option value="login">登录页</option>
             <option value="register">注册页</option>
             <option value="dashboard">仪表盘</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>发送给（选择"所有人"为全局公告）</label>
+          <select class="input" id="ann_target_user">
+            <option value="">所有人（全局公告）</option>
           </select>
         </div>
         <button type="submit" class="btn btn-primary" style="justify-self:start;">发布公告</button>
@@ -118,6 +125,62 @@
       <h2 class="section-title">已有公告</h2>
       <div id="annList"><p class="muted">加载中...</p></div>
     </section>
+  </div>
+
+  <!-- ========== USERS ========== -->
+  <div id="tab-users" class="admin-tab-content" {% if page != 'users' %}style="display:none"{% endif %}>
+    <section class="card pad-lg">
+      <h2 class="section-title">用户管理</h2>
+
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <input class="input" id="userSearch" placeholder="搜索用户名或邮箱..." style="max-width:320px;">
+        <button class="btn btn-soft" id="userSearchBtn">搜索</button>
+      </div>
+
+      <div class="user-table-wrap">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>用户名</th>
+              <th>邮箱</th>
+              <th>剩余次数</th>
+              <th>自动签到</th>
+              <th>签到总次数</th>
+              <th>最近签到</th>
+              <th>注册时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody">
+            <tr><td colspan="9" class="muted" style="text-align:center;padding:24px;">加载中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="user-pagination" id="userPagination"></div>
+    </section>
+  </div>
+
+  <!-- Credit adjustment modal -->
+  <div class="modal-overlay" id="creditModal" style="display:none;">
+    <div class="modal-content card pad-lg" style="max-width:400px;">
+      <div class="modal-header">
+        <h3 class="modal-title">调整签到次数</h3>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:12px;" id="creditModalUser"></p>
+        <div class="form-group">
+          <label>变动数量（正数增加，负数减少）</label>
+          <input class="input" type="number" id="creditDelta" placeholder="例如：10 或 -5" required>
+        </div>
+        <div id="creditModalMsg" class="help-error"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-soft" id="creditModalCancel">取消</button>
+        <button class="btn btn-primary" id="creditModalConfirm">确认</button>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
