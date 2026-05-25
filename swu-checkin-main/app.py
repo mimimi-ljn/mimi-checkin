@@ -132,9 +132,22 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        _migrate_db()
         _init_default_settings()
 
     return app
+
+
+def _migrate_db():
+    """Add missing columns to existing tables (safe to call on every startup)."""
+    from sqlalchemy import inspect, text
+    inspector = inspect(db.engine)
+    # Add target_user_id to announcements if missing
+    cols = [c["name"] for c in inspector.get_columns("announcements")]
+    if "target_user_id" not in cols:
+        with db.engine.connect() as conn:
+            conn.execute(text("ALTER TABLE announcements ADD COLUMN target_user_id INTEGER"))
+            conn.commit()
 
 
 app = create_app()
@@ -682,13 +695,25 @@ def api_delete_order(order_id):
 
 @app.route("/api/v1/announcements")
 def api_announcements():
+    from sqlalchemy import or_
     page = request.args.get("page", "home")
-    items = Announcement.query.filter_by(active=True).filter(
+    # Global: target_user_id IS NULL and page matches
+    is_global = (Announcement.target_user_id == None) & (
         (Announcement.page == page) | (Announcement.page == "all")
-    ).order_by(Announcement.created_at.desc()).all()
+    )
+    if current_user.is_authenticated:
+        # Also include personal announcements for this user
+        is_personal = Announcement.target_user_id == current_user.id
+        cond = is_global | is_personal
+    else:
+        cond = is_global
+
+    items = Announcement.query.filter_by(active=True).filter(cond).order_by(
+        Announcement.created_at.desc()
+    ).all()
 
     return jsonify([
-        {"title": a.title, "content": a.content}
+        {"id": a.id, "title": a.title, "content": a.content}
         for a in items
     ])
 
@@ -737,6 +762,82 @@ def api_admin_run_checkin():
     return jsonify({"results": results})
 
 
+# ─── Admin User Management API ──────────────────────────────────────────────
+
+@app.route("/api/v1/admin/users", methods=["GET"])
+@admin_required
+def admin_list_users():
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 50, type=int)
+    search = (request.args.get("search") or "").strip()
+
+    query = User.query.filter_by(deleted_at=None)
+    if search:
+        query = query.filter(
+            (User.username.contains(search)) | (User.email.contains(search))
+        )
+
+    total = query.count()
+    users = query.order_by(User.id.desc()).offset((page - 1) * per_page).limit(per_page).all()
+
+    return jsonify({
+        "items": [
+            {
+                "id": u.id,
+                "username": u.username,
+                "email": u.email,
+                "credits": u.credits,
+                "auto_checkin": u.auto_checkin,
+                "created_at": u.created_at.isoformat() if u.created_at else None,
+                "login_count": CheckinLog.query.filter_by(user_id=u.id).count(),
+                "last_checkin": (
+                    CheckinLog.query.filter_by(user_id=u.id)
+                    .order_by(CheckinLog.created_at.desc())
+                    .first().created_at.isoformat()
+                ) if CheckinLog.query.filter_by(user_id=u.id).first() else None,
+            }
+            for u in users
+        ],
+        "total": total,
+        "page": page,
+        "pages": max(1, (total + per_page - 1) // per_page),
+    })
+
+
+@app.route("/api/v1/admin/users/<int:user_id>/credits", methods=["PUT"])
+@admin_required
+def admin_adjust_credits(user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.get_json() or {}
+    delta = data.get("delta", 0)  # positive = add, negative = deduct
+    reason = (data.get("reason") or "").strip()
+
+    if not isinstance(delta, int) or delta == 0:
+        return jsonify({"detail": "请输入有效的增减数值"}), 422
+
+    new_credits = max(0, user.credits + delta)
+    user.credits = new_credits
+    db.session.commit()
+
+    return jsonify({
+        "message": f"已{'增加' if delta > 0 else '减少'} {abs(delta)} 次签到次数",
+        "username": user.username,
+        "previous": user.credits - delta,
+        "current": new_credits,
+    })
+
+
+@app.route("/api/v1/admin/users/simple", methods=["GET"])
+@admin_required
+def admin_users_simple():
+    """Simple user list for announcement targeting dropdown."""
+    users = User.query.filter_by(deleted_at=None).order_by(User.id).all()
+    return jsonify([
+        {"id": u.id, "username": u.username}
+        for u in users
+    ])
+
+
 # ─── Admin Page Routes ──────────────────────────────────────────────────────
 
 @app.route("/admin")
@@ -755,6 +856,12 @@ def admin_settings_page():
 @admin_required
 def admin_announcements_page():
     return render_template("admin.html", page="announcements")
+
+
+@app.route("/admin/users")
+@admin_required
+def admin_users_page():
+    return render_template("admin.html", page="users")
 
 
 # ─── Admin API Routes ───────────────────────────────────────────────────────
@@ -836,6 +943,7 @@ def admin_list_announcements():
                 "title": a.title,
                 "content": a.content,
                 "page": a.page,
+                "target_user_id": a.target_user_id,
                 "active": a.active,
                 "created_at": a.created_at.isoformat() if a.created_at else None,
             }
@@ -848,10 +956,12 @@ def admin_list_announcements():
 @admin_required
 def admin_create_announcement():
     data = request.get_json() or {}
+    target_uid = data.get("target_user_id")
     a = Announcement(
         title=data.get("title", ""),
         content=data.get("content", ""),
         page=data.get("page", "home"),
+        target_user_id=target_uid if target_uid else None,
         active=data.get("active", True),
     )
     db.session.add(a)
@@ -867,6 +977,9 @@ def admin_update_announcement(aid):
     for field in ["title", "content", "page"]:
         if field in data:
             setattr(a, field, data[field])
+    if "target_user_id" in data:
+        tu = data["target_user_id"]
+        a.target_user_id = tu if tu else None
     if "active" in data:
         a.active = data["active"]
     db.session.commit()
