@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}管理后台 - {{ site_settings.get('site_title', '签到系统') }}{% endblock %}
+{% set page_id = "admin-" + page %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container narrow">
+  <!-- Admin Tabs -->
+  <div class="admin-tabs">
+    <a href="/admin" class="admin-tab {% if page == 'overview' %}active{% endif %}">概览</a>
+    <a href="/admin/settings" class="admin-tab {% if page == 'settings' %}active{% endif %}">站点设置</a>
+    <a href="/admin/announcements" class="admin-tab {% if page == 'announcements' %}active{% endif %}">公告管理</a>
+  </div>
+
+  <!-- ========== OVERVIEW ========== -->
+  <div id="tab-overview" class="admin-tab-content" {% if page != 'overview' %}style="display:none"{% endif %}>
+    <div class="stats-row" id="overviewStats">
+      <div class="stat-card"><div class="stat-label">总用户数</div><div class="stat-value" id="statUsers">-</div></div>
+      <div class="stat-card"><div class="stat-label">开启自动签到</div><div class="stat-value" id="statAuto">-</div></div>
+      <div class="stat-card"><div class="stat-label">总签到成功</div><div class="stat-value" id="statTotal">-</div></div>
+      <div class="stat-card"><div class="stat-label">今日签到成功</div><div class="stat-value" id="statToday">-</div></div>
+    </div>
+
+    <section class="card pad-md" style="margin-top:16px;">
+      <h2 class="section-title">最近签到记录</h2>
+      <div class="log-list" id="recentLogs"><p class="muted">加载中...</p></div>
+    </section>
+  </div>
+
+  <!-- ========== SETTINGS ========== -->
+  <div id="tab-settings" class="admin-tab-content" {% if page != 'settings' %}style="display:none"{% endif %}>
+    <section class="card pad-lg">
+      <h2 class="section-title">站点设置</h2>
+      <p class="muted" style="margin-bottom:20px;">修改后点击保存即可生效，无需重启。</p>
+
+      <form class="form" id="settingsForm">
+        <div class="form-group">
+          <label>站点名称</label>
+          <input class="input" id="set_site_title" placeholder="签到系统">
+        </div>
+        <div class="form-group">
+          <label>首页公告（留空不显示）</label>
+          <textarea class="input" id="set_home_notice" placeholder="例如：系统维护中，预计22:00恢复" style="min-height:60px;padding:12px;"></textarea>
+        </div>
+        <hr style="border-color:var(--border);margin:8px 0;">
+
+        <div class="form-group setting-switch">
+          <label>开放注册</label>
+          <span class="switch-wrap"><input type="checkbox" id="set_registration_enabled"><span class="switch-slider"></span></span>
+          <p class="form-tip">关闭后新用户无法注册</p>
+        </div>
+        <div class="form-group setting-switch">
+          <label>开放购买</label>
+          <span class="switch-wrap"><input type="checkbox" id="set_payment_enabled"><span class="switch-slider"></span></span>
+          <p class="form-tip">关闭后隐藏购买入口和价格信息</p>
+        </div>
+        <div class="form-group setting-switch">
+          <label>开放手动签到</label>
+          <span class="switch-wrap"><input type="checkbox" id="set_manual_checkin_enabled"><span class="switch-slider"></span></span>
+          <p class="form-tip">关闭后所有用户无法手动签到（自动签到不受影响）</p>
+        </div>
+
+        <hr style="border-color:var(--border);margin:8px 0;">
+
+        <div class="form-group">
+          <label>新用户默认签到次数</label>
+          <input class="input" type="number" id="set_new_user_credits" min="0" style="max-width:120px;">
+        </div>
+        <div class="form-group">
+          <label>套餐价格（元）</label>
+          <input class="input" type="number" id="set_package_price" min="0" step="0.01" style="max-width:120px;">
+        </div>
+        <div class="form-group">
+          <label>套餐次数</label>
+          <input class="input" type="number" id="set_package_count" min="1" style="max-width:120px;">
+        </div>
+        <div class="form-group">
+          <label>价格显示文字</label>
+          <input class="input" id="set_pricing_text" placeholder="3 元 / 30 次" style="max-width:300px;">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="justify-self:start;">保存设置</button>
+      </form>
+    </section>
+  </div>
+
+  <!-- ========== ANNOUNCEMENTS ========== -->
+  <div id="tab-announcements" class="admin-tab-content" {% if page != 'announcements' %}style="display:none"{% endif %}>
+    <section class="card pad-lg" style="margin-bottom:20px;">
+      <h2 class="section-title">新建公告</h2>
+      <form class="form" id="newAnnounceForm">
+        <div class="form-group">
+          <label>标题</label>
+          <input class="input" id="ann_title" placeholder="公告标题" required>
+        </div>
+        <div class="form-group">
+          <label>内容</label>
+          <textarea class="input" id="ann_content" placeholder="公告内容..." style="min-height:80px;padding:12px;" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>显示页面</label>
+          <select class="input" id="ann_page">
+            <option value="all">所有页面</option>
+            <option value="home">首页</option>
+            <option value="login">登录页</option>
+            <option value="register">注册页</option>
+            <option value="dashboard">仪表盘</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="justify-self:start;">发布公告</button>
+      </form>
+    </section>
+
+    <section class="card pad-md">
+      <h2 class="section-title">已有公告</h2>
+      <div id="annList"><p class="muted">加载中...</p></div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

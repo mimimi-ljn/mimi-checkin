@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}仪表盘 - 签到系统{% endblock %}
+{% set page_id = "dashboard" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container narrow">
+  <!-- Status Cards -->
+  <div class="stats-row" id="statsCards">
+    <div class="stat-card">
+      <div class="stat-label">今日状态</div>
+      <div class="stat-value" id="todayStatus">加载中...</div>
+      <div class="stat-hint" id="todayHint"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">剩余次数</div>
+      <div class="stat-value" id="credits">-</div>
+      <div class="stat-hint">签到成功会消耗 1 次</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">自动签到</div>
+      <div class="stat-value" id="autoStatus">-</div>
+      <div class="stat-hint">
+        <button class="btn btn-sm btn-soft" id="toggleAutoBtn" data-enabled="false">切换</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions Row -->
+  <div class="action-row">
+    <button class="btn btn-primary" id="manualCheckinBtn">手动签到</button>
+    {% if site_settings.get('payment_enabled', 'true') == 'true' %}
+{#    <button class="btn btn-soft" id="buyCreditsBtn">购买次数 ({{ site_settings.get('pricing_text', '3元/30次') }})</button>#}
+    {% endif %}
+    <span class="action-hint" id="manualHint">21:00-23:30 可用</span>
+  </div>
+
+  <!-- Service Notice Area -->
+  <div id="serviceNotice" class="service-notice" style="display:none;">
+    <strong></strong>
+    <span></span>
+  </div>
+
+  <!-- Check-in Log -->
+  <section class="card pad-md" id="logSection">
+    <h2 class="section-title">签到日志</h2>
+    <div class="log-list" id="logList">
+      <p class="muted">加载中...</p>
+    </div>
+    <div class="log-pagination" id="logPagination"></div>
+  </section>
+
+  <!-- Orders -->
+  <section class="card pad-md" id="orderSection">
+    <h2 class="section-title">购买记录</h2>
+    <div class="order-list" id="orderList">
+      <p class="muted">暂无记录</p>
+    </div>
+  </section>
+
+  <!-- Account Settings -->
+  <section class="card pad-md" id="settingsSection">
+    <h2 class="section-title">账号设置</h2>
+    <form class="form" id="settingsForm">
+      <div class="form-group">
+        <label for="settingsPassword">新密码（留空不修改）</label>
+        <input class="input" type="password" id="settingsPassword" placeholder="留空则不修改密码">
+      </div>
+      <div class="form-group">
+        <label for="settingsEmail">新邮箱（留空不修改）</label>
+        <input class="input" type="email" id="settingsEmail" placeholder="留空则不修改邮箱">
+      </div>
+      <button type="submit" class="btn btn-primary">保存设置</button>
+    </form>
+  </section>
+
+  <!-- Delete Account -->
+  <section class="card pad-md danger-zone">
+    <h2 class="section-title" style="color:var(--error);">删除账号</h2>
+    <p class="muted" style="margin-bottom:16px;">删除后退出登录，相同用户名重新注册可恢复剩余次数。</p>
+    <div class="form-group">
+      <label for="deleteEmailCode">邮箱验证码</label>
+      <div class="code-row">
+        <input class="input" type="text" id="deleteEmailCode" placeholder="请输入验证码" maxlength="32" inputmode="numeric">
+        <button type="button" class="btn btn-soft code-btn" id="sendDeleteCodeBtn">发送验证码</button>
+      </div>
+    </div>
+    <button class="btn" style="background:var(--error);color:#fff;margin-top:12px;" id="deleteAccountBtn">删除账号</button>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

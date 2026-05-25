@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}用户协议 - 签到系统{% endblock %}
+{% set page_id = "terms" %}
+
+{% block content %}
+<div class="container terms-page">
+  <section class="card pad-lg terms-card">
+    <div class="terms-head">
+      <h1 class="page-title">用户协议</h1>
+      <p>生效日期：2026 年 5 月 24 日</p>
+    </div>
+    {% include "terms_content.html" %}
+  </section>
+</div>
+{% endblock %}

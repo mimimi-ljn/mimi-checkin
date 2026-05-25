@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}用户注册 - 签到系统{% endblock %}
+{% set page_id = "register" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container center">
+  <section class="card pad-lg auth-card">
+    <div class="hero">
+      <div class="brand-badge" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <h1 class="hero-title auth-title">创建账号</h1>
+      <p class="hero-subtitle auth-subtitle">注册成功后即可开启自动签到</p>
+    </div>
+
+    <form class="form" id="registerForm">
+      <div class="form-group">
+        <label for="username">校园网账号</label>
+        <input class="input" type="text" id="username" name="username" placeholder="请输入校园网账号" required autocomplete="username">
+      </div>
+
+      <div class="form-group">
+        <label for="campus_password">密码</label>
+        <input class="input" type="password" id="campus_password" name="campus_password" placeholder="请输入密码" required autocomplete="new-password">
+      </div>
+
+      <div class="form-group">
+        <label for="invite_code">内测码</label>
+        <input class="input" type="text" id="invite_code" name="invite_code" placeholder="请输入内测码" required autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label for="email">邮箱</label>
+        <input class="input" type="email" id="email" name="email" placeholder="请输入邮箱地址" required autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <label for="email_code">验证码</label>
+        <div class="code-row">
+          <input class="input" type="text" id="email_code" name="email_code" maxlength="32" placeholder="请输入验证码" required inputmode="numeric" autocomplete="one-time-code">
+          <button type="button" class="btn btn-soft code-btn" id="sendCodeBtn">发送验证码</button>
+        </div>
+        <p class="form-tip">未收到验证码请查看垃圾箱。</p>
+      </div>
+
+      <div class="terms-consent" id="termsConsent">
+        <div class="terms-consent-actions">
+          <div class="terms-consent-status">
+            <input type="checkbox" id="termsAccepted" disabled hidden>
+            <span class="terms-status-dot" aria-hidden="true"></span>
+            <span class="terms-status-text">
+              <span class="terms-status-pending">待确认</span>
+              <span class="terms-status-accepted">已同意</span>
+              <a href="/terms" target="_blank" rel="noopener">用户协议</a>
+            </span>
+          </div>
+          <button type="button" class="terms-open-btn" id="openTermsModal">查看并确认</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary auth-submit" id="submitBtn">注册并登录</button>
+      <div class="help-error auth-alert" id="message" role="status" aria-live="polite"></div>
+    </form>
+
+    <div class="auth-foot auth-foot-row">
+      <span>已经有账号？</span>
+      <a href="/login">返回登录</a>
+    </div>
+  </section>
+</div>
+
+<div class="modal-overlay terms-modal-overlay" id="registerTermsModal" style="display: none;">
+  <div class="modal-content card pad-lg terms-modal">
+    <div class="modal-header">
+      <h3 class="modal-title">用户协议</h3>
+    </div>
+    <div class="modal-body terms-modal-body">
+      {% include "terms_content.html" %}
+    </div>
+    <div class="modal-footer">
+      <a class="btn btn-soft" href="/terms" target="_blank" rel="noopener">打开完整页面</a>
+      <button class="btn btn-primary" id="confirmRegisterTerms" type="button" disabled>请阅读 5s</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/register.js') }}"></script>
+{% endblock %}

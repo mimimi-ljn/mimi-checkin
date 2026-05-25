@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}en签到系统{% endblock %}</title>
+  <meta name="description" content="SWU校园网自动签到系统。">
+  <link rel="icon" href="{{ url_for('static', filename='icons/favicon.ico') }}" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body data-page="{{ page_id }}">
+  <header class="top-nav">
+    <div class="nav-container">
+      <a href="/" class="logo-link" aria-label="返回首页">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" class="logo-mark">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span class="logo-text">{{ site_settings.get('site_title', '签到系统') }}</span>
+      </a>
+
+      <nav class="nav-menu" aria-label="主导航">
+        <div class="nav-main">
+          <a href="/" class="nav-link {% if page_id == 'home' %}active{% endif %}">首页</a>
+          <a href="/terms" class="nav-link {% if page_id == 'terms' %}active{% endif %}">协议</a>
+          {% if current_user.is_authenticated %}
+          <a href="/dashboard" class="nav-link {% if page_id == 'dashboard' %}active{% endif %}">仪表盘</a>
+            {% if current_user.id == 1 %}
+            <a href="/admin" class="nav-link {% if page_id and page_id.startswith('admin') %}active{% endif %}">管理</a>
+            {% endif %}
+          {% endif %}
+        </div>
+        <div class="nav-actions">
+          {% if current_user.is_authenticated %}
+            <span class="nav-link" style="pointer-events:none;opacity:0.7;">{{ current_user.username }}</span>
+            <a href="#" class="nav-link logout" id="navLogout">退出</a>
+          {% else %}
+            <a href="/login" class="nav-link {% if page_id == 'login' %}active{% endif %}">登录</a>
+            <a href="/register" class="nav-link nav-cta {% if page_id == 'register' %}active{% endif %}">注册</a>
+          {% endif %}
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <div id="announcement-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content card pad-lg">
+      <div class="modal-header">
+        <h3 class="modal-title" id="announcement-title">系统公告</h3>
+      </div>
+      <div class="modal-body" id="announcement-content"></div>
+      <div class="modal-footer">
+{#        <a id="announcement-feedback" class="btn announcement-feedback-btn" href="https://qm.qq.com/q/CAsgsaBqGQ" target="_blank" rel="noopener">交流群</a>#}
+        <button id="confirm-modal" class="btn btn-primary" type="button">已阅</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

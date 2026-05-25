@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}首页 - 签到系统{% endblock %}
+{% set page_id = "home" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/home.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="home-shell">
+  <section class="home-hero" aria-labelledby="home-title">
+    <div class="home-hero-copy">
+      <div class="home-badge">
+        <span class="home-badge-dot" aria-hidden="true"></span>
+        ファリー
+      </div>
+      <h1 class="home-title" id="home-title">MIMI的校园签到</h1>
+      <p class="home-subtitle">
+        支持自动签到、手动签到、无视位置限制、打卡地点显示和签到日志查看。现为内测版无限签到次数，但是可能不稳定，只有实际签到成功才会消耗次数。
+      </p>
+      <div class="home-actions" aria-label="首页操作">
+        <a href="/login" class="btn btn-primary">登录</a>
+        <a href="/register" class="btn btn-soft">注册</a>
+      </div>
+      <div class="home-trust-row" aria-label="欢迎扩列">
+        <span>米米米</span>
+        <span>みみみ</span>
+        <span>mimimi</span>
+{#      </div>#}
+{#      <div class="home-price-note" aria-label="收费标准">#}
+{#        <span>收费标准</span>#}
+{#        <strong>{{ site_settings.get('pricing_text', '3 元 / 30 次') }}</strong>#}
+{#      </div>#}
+      <p class="home-quota-note">
+        已手动打卡、请假中、今日已签到、账号或网络异常等未产生实际签到成功的情况，不扣次数。
+      </p>
+    </div>
+
+    <div class="home-hero-visual">
+      <div class="home-hero-image-wrapper">
+        <img src="{{ url_for('static', filename='image/hero-image.png') }}" alt="装饰图片" class="home-hero-image">
+        <div class="home-hero-image-fade"></div>
+      </div>
+
+      <div class="home-preview" aria-hidden="true">
+      <div class="preview-topbar">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="preview-header">
+        <div>
+          <span class="preview-kicker">今日状态</span>
+          <strong>自动签到运行中</strong>
+        </div>
+        <div class="preview-status">正常</div>
+      </div>
+      <div class="preview-meter">
+        <span style="width: 76%"></span>
+      </div>
+      <div class="preview-grid">
+        <div>
+          <span>剩余次数</span>
+          <strong>520</strong>
+        </div>
+        <div>
+          <span>最近签到</span>
+          <strong>13:14</strong>
+        </div>
+      </div>
+      <div class="preview-log">
+        <span></span>
+        <p>签到成功，已写入日志</p>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-feature-grid" aria-label="核心功能">
+    <article class="home-feature">
+      <div class="home-feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M20 7 9 18l-5-5" /></svg>
+      </div>
+      <h2>自动签到</h2>
+      <p>开启后由系统按任务执行签到，重复操作</p>
+    </article>
+    <article class="home-feature">
+      <div class="home-feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M9 11 12 14 22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
+      </div>
+      <h2>手动签到</h2>
+      <p>需要即时处理时可手动发起，结果会同步展示在仪表盘</p>
+    </article>
+    <article class="home-feature">
+      <div class="home-feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11Z" /><path d="M12 10h.01" /><path d="M3 3l18 18" /></svg>
+      </div>
+      <h2>无视位置</h2>
+      <p>无论在何地都能签到，减少位置限制带来的失败情况</p>
+    </article>
+    <article class="home-feature">
+  <div class="home-feature-icon" aria-hidden="true">
+    <img src="static/image/wolf_paw.svg" alt="狼爪">
+  </div>
+  <h2>这个是彩蛋</h2>
+  <p>我是彩蛋</p>
+</article>
+
+{#    <article class="home-feature">#}
+{#      <div class="home-feature-icon" aria-hidden="true">#}
+{#        <svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>#}
+{#      </div>#}
+{#      <h2>签到日志显示</h2>#}
+{#      <p>每次签到结果、时间和异常提示都有记录，方便回看与排查。</p>#}
+{#    </article>#}
+  </section>
+</div>
+{% endblock %}

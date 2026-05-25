@@ -1,0 +1,9 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <title>Wolf Paw</title>
+  <circle cx="150" cy="150" r="55" fill="#4d5563"/>
+  <circle cx="256" cy="115" r="60" fill="#4d5563"/>
+  <circle cx="362" cy="150" r="55" fill="#4d5563"/>
+  <circle cx="120" cy="270" r="50" fill="#4d5563"/>
+  <circle cx="392" cy="270" r="50" fill="#4d5563"/>
+  <path d="M160 330 C180 260, 332 260, 352 330 C370 395, 312 430, 256 430 C200 430, 142 395, 160 330 Z" fill="#4d5563"/>
+</svg>
