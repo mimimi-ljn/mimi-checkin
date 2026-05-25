@@ -21,7 +21,7 @@ def send_email(config, to_email, code):
 
     try:
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = "签到系统 - 邮箱验证码"
+        msg["Subject"] = "mimimi签到系统 - 邮箱验证码"
         msg["From"] = config["SMTP_FROM"] or config["SMTP_USER"]
         msg["To"] = to_email
 
@@ -29,6 +29,7 @@ def send_email(config, to_email, code):
 <html>
 <body style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
   <h2 style="color:#22C55E;">签到系统</h2>
+  <p>欢迎参与内测，mimi对你说：</
   <p>你的邮箱验证码为：</p>
   <p style="font-size:32px;font-weight:bold;color:#22C55E;letter-spacing:4px;">{code}</p>
   <p style="color:#64748B;">验证码 10 分钟内有效，请勿转发给他人。</p>
