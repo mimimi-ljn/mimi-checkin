@@ -351,15 +351,11 @@ def api_send_code():
     from services.email_service import generate_code, send_email
 
     code = generate_code()
-    smtp_config = {
-        "SMTP_HOST": app.config["SMTP_HOST"],
-        "SMTP_PORT": app.config["SMTP_PORT"],
-        "SMTP_USER": app.config["SMTP_USER"],
-        "SMTP_PASSWORD": app.config["SMTP_PASSWORD"],
-        "SMTP_FROM": app.config["SMTP_FROM"],
+    email_config = {
+        "RESEND_API_KEY": app.config.get("RESEND_API_KEY", ""),
     }
 
-    success, error = send_email(smtp_config, email, code)
+    success, error = send_email(email_config, email, code)
 
     # Always save the code (in dev mode, printed to console)
     code_record = EmailCode(
