@@ -20,7 +20,7 @@ def send_email(config, to_email, code):
 <html>
 <body style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
   <h2 style="color:#EAB308;">MIMI签到系统</h2>
-  <p>欢迎参与内测，这是你的邮箱验证码：</p>
+  <p>MIMI说：雷猴啊，欢迎参与内测，这是你的邮箱验证码：</p>
   <p style="font-size:32px;font-weight:bold;color:#EAB308;letter-spacing:4px;">{code}</p>
   <p style="color:#64748B;">验证码 10 分钟内有效，请勿转发给他人。</p>
   <hr style="border-color:#E5E7EB;">
