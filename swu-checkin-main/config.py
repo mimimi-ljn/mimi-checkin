@@ -10,7 +10,7 @@ class Config:
 
     # Email config (SMTP)
     SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.qq.com")
-    SMTP_PORT = int(os.environ.get("SMTP_PORT", 587))
+    SMTP_PORT = int(os.environ.get("SMTP_PORT", 465))
     SMTP_USER = os.environ.get("SMTP_USER", "3922529458@qq.com")
     SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "ftsnjdtigorhccga")
     SMTP_FROM = os.environ.get("SMTP_FROM", "3922529458@qq.com")
