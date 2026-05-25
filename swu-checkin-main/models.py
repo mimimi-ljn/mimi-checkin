@@ -85,6 +85,7 @@ class Announcement(db.Model):
     title = db.Column(db.String(256), nullable=False)
     content = db.Column(db.Text, nullable=False)
     page = db.Column(db.String(64), default="home")
+    target_user_id = db.Column(db.Integer, nullable=True)  # None = global, otherwise user-specific
     active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=china_now)
 
