@@ -40,7 +40,7 @@ def send_email(config, to_email, code):
                 "Content-Type": "application/json",
             },
             json={
-                "from": "MIMI签到 <noreply@mail.twelvemi-checkin.cc.cd>",
+                "from": "MIMI签到 <noreply@twelvemi-checkin.cc.cd>",
                 "to": [to_email],
                 "subject": "MIMI签到系统 - 邮箱验证码",
                 "html": html_body,
