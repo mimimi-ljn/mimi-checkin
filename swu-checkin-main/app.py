@@ -153,6 +153,16 @@ def _migrate_db():
 app = create_app()
 
 
+@app.after_request
+def add_cache_headers(response):
+    """Prevent Cloudflare and browsers from caching HTML that may contain
+    user-specific data (e.g. navbar showing logged-in username)."""
+    response.headers["Cache-Control"] = "private, no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
