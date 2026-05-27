@@ -23,11 +23,11 @@ if _SCRIPT_DIR not in sys.path:
 
 
 def _get_encryption_key():
-    """Get encryption key from config or use default."""
+    """Get password encryption key from config (independent of SECRET_KEY)."""
     try:
-        return app.config["SECRET_KEY"][:16]
+        return app.config["PASSWORD_ENCRYPTION_KEY"][:16]
     except (RuntimeError, KeyError):
-        return "default_key_1234"[:16]
+        return "change-me-to-a-r"
 
 
 def _simple_encrypt(password, key=None):
