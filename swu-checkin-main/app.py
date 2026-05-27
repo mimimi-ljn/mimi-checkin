@@ -762,6 +762,109 @@ def api_admin_run_checkin():
     return jsonify({"results": results})
 
 
+@app.route("/api/v1/admin/fix-user-ids", methods=["POST"])
+def api_admin_fix_user_ids():
+    """One-time migration: move user 'lingjianuo' to ID 1, shifting all existing IDs up by 1."""
+    data = request.get_json() or {}
+    admin_token = data.get("token", "")
+
+    # Same token scheme as api_admin_run_checkin
+    expected = hashlib.sha256(app.config["SECRET_KEY"].encode()).hexdigest()[:16]
+    if admin_token != expected:
+        return jsonify({"detail": "未授权"}), 403
+
+    from sqlalchemy import text
+
+    with db.engine.connect() as conn:
+        # 1. Find the target user
+        row = conn.execute(
+            text("SELECT id FROM users WHERE username = :u"), {"u": "lingjianuo"}
+        ).fetchone()
+        if not row:
+            return jsonify({"detail": "用户 lingjianuo 不存在"}), 404
+        target_id = row[0]
+
+        if target_id == 1:
+            users = conn.execute(
+                text("SELECT id, username FROM users ORDER BY id")
+            ).fetchall()
+            return jsonify({
+                "message": "lingjianuo 已经是 ID 1，无需修改",
+                "users": [{"id": r[0], "username": r[1]} for r in users],
+            })
+
+        # 2. Temporarily rename lingjianuo to avoid unique constraint conflicts
+        #    during the ID shuffle
+        conn.execute(
+            text("UPDATE users SET username = '__lingjianuo_tmp__' WHERE id = :id"),
+            {"id": target_id},
+        )
+        conn.commit()
+
+        # 3. Shift all users with ID >= 1 upward, from highest ID to lowest
+        #    to avoid primary-key collisions
+        rows = conn.execute(
+            text("SELECT id FROM users WHERE id >= 1 ORDER BY id DESC")
+        ).fetchall()
+        for (uid,) in rows:
+            conn.execute(
+                text("UPDATE users SET id = :new_id WHERE id = :old_id"),
+                {"new_id": uid + 1, "old_id": uid},
+            )
+        conn.commit()
+
+        # 4. Also update foreign-key references in related tables
+        for (uid,) in rows:
+            old_id = uid
+            new_id = uid + 1
+            conn.execute(
+                text("UPDATE checkin_logs SET user_id = :new_id WHERE user_id = :old_id"),
+                {"new_id": new_id, "old_id": old_id},
+            )
+            conn.execute(
+                text("UPDATE orders SET user_id = :new_id WHERE user_id = :old_id"),
+                {"new_id": new_id, "old_id": old_id},
+            )
+        conn.commit()
+
+        # 5. Assign ID 1 to lingjianuo and restore their username
+        conn.execute(
+            text("UPDATE users SET id = 1, username = 'lingjianuo' WHERE username = '__lingjianuo_tmp__'"),
+        )
+        conn.commit()
+
+        # 6. Also fix lingjianuo's checkin_logs and orders (they kept the old target_id,
+        #    which was already shifted above — now point them to ID 1)
+        conn.execute(
+            text("UPDATE checkin_logs SET user_id = 1 WHERE user_id = :shifted"),
+            {"shifted": target_id + 1},
+        )
+        conn.execute(
+            text("UPDATE orders SET user_id = 1 WHERE user_id = :shifted"),
+            {"shifted": target_id + 1},
+        )
+        conn.commit()
+
+        # 7. Reset the SQLite autoincrement sequence so new users get correct IDs
+        max_id_row = conn.execute(text("SELECT MAX(id) FROM users")).fetchone()
+        max_id = max_id_row[0] or 0
+        conn.execute(
+            text("UPDATE sqlite_sequence SET seq = :max_id WHERE name = 'users'"),
+            {"max_id": max_id},
+        )
+        conn.commit()
+
+        # 8. Return the updated user list for verification
+        users = conn.execute(
+            text("SELECT id, username FROM users ORDER BY id")
+        ).fetchall()
+
+    return jsonify({
+        "message": f"成功：lingjianuo 已从 ID {target_id} 移至 ID 1，其余用户 ID 已顺移",
+        "users": [{"id": r[0], "username": r[1]} for r in users],
+    })
+
+
 # ─── Admin User Management API ──────────────────────────────────────────────
 
 @app.route("/api/v1/admin/users", methods=["GET"])
