@@ -155,11 +155,14 @@ app = create_app()
 
 @app.after_request
 def add_cache_headers(response):
-    """Prevent Cloudflare and browsers from caching HTML that may contain
-    user-specific data (e.g. navbar showing logged-in username)."""
-    response.headers["Cache-Control"] = "private, no-cache, no-store, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
+    """Prevent Cloudflare and browsers from caching HTML pages that may
+    contain user-specific data (e.g. navbar showing logged-in username).
+    Static assets (CSS/JS/images) are left cacheable."""
+    ct = response.content_type or ""
+    if "text/html" in ct or "application/json" in ct:
+        response.headers["Cache-Control"] = "private, no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
     return response
 
 
